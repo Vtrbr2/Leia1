@@ -722,8 +722,324 @@
         </div>
     </div>
 
-    <script>
-        // MANTENHA SEU JAVASCRIPT ORIGINAL AQUI
-    </script>
+        <script>
+        // ================= ELEMENTOS DA DOM =================
+        const raInput = document.getElementById('ra');
+        const senhaInput = document.getElementById('senha');
+        const togglePasswordBtn = document.getElementById('togglePassword');
+        const loginBtn = document.getElementById('loginBtn');
+        const openBookModalBtn = document.getElementById('openBookModalBtn');
+        const bookSelectionModal = document.getElementById('bookSelectionModal');
+        const bookListContainer = document.getElementById('bookListContainer');
+        const closeBookModalBtn = document.getElementById('closeBookModalBtn');
+        const startReadingBtn = document.getElementById('startReadingBtn');
+        const readAndAnswerBtn = document.getElementById('readAndAnswerBtn');
+        const answerActivityBtn = document.getElementById('answerActivityBtn');
+        const timeConfigModal = document.getElementById('timeConfigModal');
+        const closeTimeConfigBtn = document.getElementById('closeTimeConfigBtn');
+        const startExecutionBtn = document.getElementById('startExecutionBtn');
+        const startInstantExecutionBtn = document.getElementById('startInstantExecutionBtn');
+        const progressModal = document.getElementById('progressModal');
+        const progressModalTitle = document.getElementById('progressModalTitle');
+        const progressModalMessage = document.getElementById('progressModalMessage');
+        const progressBarFill = document.getElementById('progressBarFill');
+        const progressPercentageText = document.getElementById('progressPercentageText');
+        const notificationsContainer = document.getElementById('notificationsContainer');
+
+        // ================= VARIÁVEIS GLOBAIS =================
+        let currentSelectedBook = null;
+        let isLoggedIn = false;
+
+        // ================= FUNÇÕES DE NOTIFICAÇÃO =================
+        function showNotification(title, message, type = "info", duration = 5000) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            notification.innerHTML = `
+                <div class="notification-title">${title}</div>
+                <div>${message}</div>
+            `;
+            
+            notificationsContainer.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.remove();
+                    }
+                }, 300);
+            }, duration);
+            
+            return notification;
+        }
+
+        // ================= FUNÇÕES DE SIMULAÇÃO =================
+        function simularLivros() {
+            // Esta função simula a busca de livros
+            // Em um sistema real, isso viria de uma API
+            return [
+                {
+                    id: 1,
+                    title: "Matemática - Volume 1",
+                    status: "unread",
+                    pages: 45,
+                    activities: 12
+                },
+                {
+                    id: 2,
+                    title: "Português - Literatura Brasileira",
+                    status: "read",
+                    pages: 38,
+                    activities: 8
+                },
+                {
+                    id: 3,
+                    title: "Ciências - Biologia Celular",
+                    status: "unread",
+                    pages: 52,
+                    activities: 15
+                },
+                {
+                    id: 4,
+                    title: "História - Brasil Colônia",
+                    status: "unread",
+                    pages: 41,
+                    activities: 10
+                },
+                {
+                    id: 5,
+                    title: "Geografia - Geopolítica Mundial",
+                    status: "read",
+                    pages: 36,
+                    activities: 9
+                }
+            ];
+        }
+
+        function exibirLivros() {
+            const livros = simularLivros();
+            bookListContainer.innerHTML = '';
+            
+            livros.forEach(livro => {
+                const bookItem = document.createElement('div');
+                bookItem.className = `book-item ${livro.status === 'read' ? 'selected' : ''}`;
+                bookItem.dataset.bookId = livro.id;
+                
+                bookItem.innerHTML = `
+                    <div class="book-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="book-info">
+                        <div class="book-title">${livro.title}</div>
+                        <div>
+                            <span class="book-status ${livro.status === 'read' ? 'status-read' : 'status-unread'}">
+                                ${livro.status === 'read' ? 'Lido' : 'Não Lido'}
+                            </span>
+                            <small style="color: var(--text-muted); margin-left: 0.5rem;">
+                                ${livro.pages} páginas • ${livro.activities} atividades
+                            </small>
+                        </div>
+                    </div>
+                `;
+                
+                bookItem.addEventListener('click', () => {
+                    // Remover seleção anterior
+                    document.querySelectorAll('.book-item').forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    
+                    // Selecionar novo livro
+                    bookItem.classList.add('selected');
+                    currentSelectedBook = livro;
+                    
+                    showNotification('Livro Selecionado', `"${livro.title}" selecionado para ação`, 'success');
+                });
+                
+                bookListContainer.appendChild(bookItem);
+            });
+            
+            bookSelectionModal.style.display = 'flex';
+        }
+
+        function simularProcessamento(acao, tempoMin, tempoMax) {
+            progressModal.style.display = 'flex';
+            progressModalTitle.textContent = `Executando ${acao}`;
+            progressModalMessage.textContent = 'Iniciando processo...';
+            
+            let progress = 0;
+            const totalSteps = 10;
+            const stepTime = (Math.random() * (tempoMax - tempoMin) + tempoMin) * 1000 / totalSteps;
+            
+            const interval = setInterval(() => {
+                progress += 10;
+                progressBarFill.style.width = `${progress}%`;
+                progressPercentageText.textContent = `${progress}%`;
+                
+                progressModalMessage.textContent = `Processando... ${progress}% completo`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        progressModal.style.display = 'none';
+                        showNotification('Processo Concluído', `${acao} finalizado com sucesso!`, 'success');
+                    }, 1000);
+                }
+            }, stepTime);
+        }
+
+        // ================= EVENT LISTENERS =================
+        // Toggle password visibility
+        togglePasswordBtn.addEventListener('click', () => {
+            const type = senhaInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            senhaInput.setAttribute('type', type);
+            togglePasswordBtn.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        });
+
+        // Login
+        loginBtn.addEventListener('click', () => {
+            const ra = raInput.value.trim();
+            const senha = senhaInput.value.trim();
+            
+            if (!ra || !senha) {
+                showNotification('Erro', 'Preencha RA e senha', 'error');
+                return;
+            }
+            
+            // Simular login
+            showNotification('Login', 'Realizando autenticação...', 'info');
+            
+            setTimeout(() => {
+                isLoggedIn = true;
+                openBookModalBtn.style.display = 'flex';
+                showNotification('Sucesso', 'Login realizado com sucesso!', 'success');
+            }, 1500);
+        });
+
+        // Abrir modal de livros
+        openBookModalBtn.addEventListener('click', () => {
+            if (!isLoggedIn) {
+                showNotification('Erro', 'Faça login primeiro', 'error');
+                return;
+            }
+            
+            exibirLivros();
+        });
+
+        // Fechar modais
+        closeBookModalBtn.addEventListener('click', () => {
+            bookSelectionModal.style.display = 'none';
+        });
+
+        closeTimeConfigBtn.addEventListener('click', () => {
+            timeConfigModal.style.display = 'none';
+        });
+
+        // Ações dos botões do modal de livros
+        startReadingBtn.addEventListener('click', () => {
+            if (!currentSelectedBook) {
+                showNotification('Aviso', 'Selecione um livro primeiro', 'warning');
+                return;
+            }
+            
+            bookSelectionModal.style.display = 'none';
+            timeConfigModal.style.display = 'flex';
+            
+            // Configurar para ação de leitura
+            startExecutionBtn.onclick = () => {
+                const minTime = parseInt(document.getElementById('minReadTime').value) || 10;
+                const maxTime = parseInt(document.getElementById('maxReadTime').value) || 45;
+                
+                timeConfigModal.style.display = 'none';
+                simularProcessamento('Leitura', minTime, maxTime);
+            };
+            
+            startInstantExecutionBtn.onclick = () => {
+                timeConfigModal.style.display = 'none';
+                simularProcessamento('Leitura', 1, 2);
+            };
+        });
+
+        readAndAnswerBtn.addEventListener('click', () => {
+            if (!currentSelectedBook) {
+                showNotification('Aviso', 'Selecione um livro primeiro', 'warning');
+                return;
+            }
+            
+            bookSelectionModal.style.display = 'none';
+            timeConfigModal.style.display = 'flex';
+            
+            // Configurar para ação de leitura e resposta
+            startExecutionBtn.onclick = () => {
+                const minReadTime = parseInt(document.getElementById('minReadTime').value) || 10;
+                const maxReadTime = parseInt(document.getElementById('maxReadTime').value) || 45;
+                const minAnswerTime = parseInt(document.getElementById('minAnswerTime').value) || 10;
+                const maxAnswerTime = parseInt(document.getElementById('maxAnswerTime').value) || 30;
+                
+                timeConfigModal.style.display = 'none';
+                simularProcessamento('Leitura e Resposta', 
+                    Math.min(minReadTime, minAnswerTime), 
+                    Math.max(maxReadTime, maxAnswerTime)
+                );
+            };
+            
+            startInstantExecutionBtn.onclick = () => {
+                timeConfigModal.style.display = 'none';
+                simularProcessamento('Leitura e Resposta', 1, 2);
+            };
+        });
+
+        answerActivityBtn.addEventListener('click', () => {
+            if (!currentSelectedBook) {
+                showNotification('Aviso', 'Selecione um livro primeiro', 'warning');
+                return;
+            }
+            
+            bookSelectionModal.style.display = 'none';
+            timeConfigModal.style.display = 'flex';
+            
+            // Configurar para ação de resposta apenas
+            startExecutionBtn.onclick = () => {
+                const minTime = parseInt(document.getElementById('minAnswerTime').value) || 10;
+                const maxTime = parseInt(document.getElementById('maxAnswerTime').value) || 30;
+                const accuracy = document.getElementById('accuracyPercentage').value;
+                
+                timeConfigModal.style.display = 'none';
+                simularProcessamento('Resposta de Atividades', minTime, maxTime);
+                
+                showNotification('Configuração', `Acuracia definida para ${accuracy}%`, 'info');
+            };
+            
+            startInstantExecutionBtn.onclick = () => {
+                const accuracy = document.getElementById('accuracyPercentage').value;
+                
+                timeConfigModal.style.display = 'none';
+                simularProcessamento('Resposta de Atividades', 1, 2);
+                
+                showNotification('Configuração', `Acuracia definida para ${accuracy}%`, 'info');
+            };
+        });
+
+        // Fechar modais ao clicar fora
+        window.addEventListener('click', (event) => {
+            if (event.target === bookSelectionModal) {
+                bookSelectionModal.style.display = 'none';
+            }
+            if (event.target === timeConfigModal) {
+                timeConfigModal.style.display = 'none';
+            }
+            if (event.target === progressModal) {
+                progressModal.style.display = 'none';
+            }
+        });
+
+        // Foco no campo RA ao carregar a página
+        window.addEventListener('load', () => {
+            raInput.focus();
+        });
+        </script>
+        
 </body>
   </html>
